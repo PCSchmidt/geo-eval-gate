@@ -1,0 +1,42 @@
+{
+ "ndvi_only": {
+  "ndvi_or_rgb_threshold": 0.2,
+  "ssim_threshold": "off",
+  "min_area_px": 10,
+  "mask_clouds": true,
+  "rgb": false,
+  "dev_f1": 0.09366289892089046
+ },
+ "ssim_only": {
+  "ndvi_or_rgb_threshold": "off",
+  "ssim_threshold": 0.7,
+  "min_area_px": 50,
+  "mask_clouds": true,
+  "rgb": false,
+  "dev_f1": 0.26035869244224347
+ },
+ "ndvi_or_ssim (the design)": {
+  "ndvi_or_rgb_threshold": 0.3,
+  "ssim_threshold": 0.7,
+  "min_area_px": 50,
+  "mask_clouds": true,
+  "rgb": false,
+  "dev_f1": 0.22686367303485733
+ },
+ "design without cloud mask": {
+  "ndvi_or_rgb_threshold": 0.3,
+  "ssim_threshold": 0.7,
+  "min_area_px": 50,
+  "mask_clouds": false,
+  "rgb": false,
+  "dev_f1": 0.22703492413976295
+ },
+ "rgb_difference": {
+  "ndvi_or_rgb_threshold": 0.05,
+  "ssim_threshold": "off",
+  "min_area_px": 25,
+  "mask_clouds": true,
+  "rgb": true,
+  "dev_f1": 0.2970400826558963
+ }
+}

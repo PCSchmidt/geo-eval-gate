@@ -62,21 +62,47 @@ class ScreeningConfig:
     mask_clouds: bool = True
 
 
-def screen(t0: Scene, t1: Scene, cfg: ScreeningConfig | None = None) -> list[Candidate]:
-    """Candidate change boxes. A pixel is a change if NDVI moved a lot AND structure changed."""
-    cfg = cfg or ScreeningConfig()
+@dataclass(frozen=True)
+class ScreenResult:
+    """Everything the screen produced, so it can be scored against pixel-level ground truth."""
+
+    candidates: list[Candidate]  # sorted by area, largest first
+    mask: npt.NDArray[np.bool_]  # final change mask after cleanup and the minimum-area filter
+    labels: npt.NDArray[np.int32]  # candidate i (0-based, same order as `candidates`) is labelled i + 1
+
+
+@dataclass(frozen=True)
+class ChangeMaps:
+    """The per-pixel evidence the screen thresholds, computed once per scene pair."""
+
+    dndvi: npt.NDArray[np.float64]  # abs NDVI change
+    ssim_delta: npt.NDArray[np.float64]  # 1 - SSIM of (NIR + red)
+    clouds: npt.NDArray[np.bool_]  # bright, flat pixels in either date, dilated
+
+
+def compute_maps(t0: Scene, t1: Scene) -> ChangeMaps:
     require_coregistered(t0, t1)
-    dndvi = np.abs(ndvi(t1) - ndvi(t0))
-    ssim_delta = 1.0 - ssim_map(t0.nir + t0.red, t1.nir + t1.red, data_range=2.0)
+    return ChangeMaps(
+        dndvi=np.abs(ndvi(t1) - ndvi(t0)),
+        ssim_delta=1.0 - ssim_map(t0.nir + t0.red, t1.nir + t1.red, data_range=2.0),
+        clouds=cloud_mask(t0) | cloud_mask(t1),
+    )
+
+
+def screen_from_maps(maps: ChangeMaps, cfg: ScreeningConfig | None = None) -> ScreenResult:
+    """Candidate change regions. A pixel is a change if NDVI moved a lot OR structure changed."""
+    cfg = cfg or ScreeningConfig()
+    dndvi, ssim_delta = maps.dndvi, maps.ssim_delta
     mask = (dndvi > cfg.ndvi_threshold) | (ssim_delta > cfg.ssim_delta_threshold)
     if cfg.mask_clouds:
-        mask &= ~(cloud_mask(t0) | cloud_mask(t1))
+        mask &= ~maps.clouds
     if cfg.open_iterations:
         mask = ndimage.binary_opening(mask, iterations=cfg.open_iterations)
     if cfg.close_iterations:
         mask = ndimage.binary_closing(mask, iterations=cfg.close_iterations)
     labels, _ = ndimage.label(mask)
-    out: list[Candidate] = []
+    found: list[Candidate] = []
+    ids: list[int] = []
     for idx, sl in enumerate(ndimage.find_objects(labels), start=1):
         if sl is None:
             continue
@@ -84,14 +110,29 @@ def screen(t0: Scene, t1: Scene, cfg: ScreeningConfig | None = None) -> list[Can
         area = int(region.sum())
         if area < cfg.min_area_px:
             continue
-        out.append(
+        found.append(
             Candidate(
                 x0=sl[1].start, y0=sl[0].start, x1=sl[1].stop, y1=sl[0].stop, area_px=area,
                 mean_abs_dndvi=float(dndvi[sl][region].mean()),
                 mean_ssim_delta=float(ssim_delta[sl][region].mean()),
             )
         )  # fmt: skip
-    return sorted(out, key=lambda c: -c.area_px)
+        ids.append(idx)
+    order = sorted(range(len(found)), key=lambda i: -found[i].area_px)
+    remap = np.zeros(int(labels.max()) + 1, dtype=np.int32)
+    for new_id, i in enumerate(order, start=1):
+        remap[ids[i]] = new_id
+    out_labels = remap[labels]
+    return ScreenResult([found[i] for i in order], np.asarray(out_labels > 0, dtype=np.bool_), out_labels)
+
+
+def screen_detailed(t0: Scene, t1: Scene, cfg: ScreeningConfig | None = None) -> ScreenResult:
+    return screen_from_maps(compute_maps(t0, t1), cfg)
+
+
+def screen(t0: Scene, t1: Scene, cfg: ScreeningConfig | None = None) -> list[Candidate]:
+    """Candidate change boxes (see `screen_detailed` for the masks behind them)."""
+    return screen_detailed(t0, t1, cfg).candidates
 
 
 def crop(scene: Scene, c: Candidate, pad: int = 8) -> npt.NDArray[np.uint8]:

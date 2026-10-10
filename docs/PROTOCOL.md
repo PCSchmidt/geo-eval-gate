@@ -71,4 +71,6 @@ Sentinel-2 at 10 m is coarse: a house is a few pixels, so the VLM is working at 
 
 ## Deviations
 
-None yet.
+Listed in the order they happened, each with what had been seen at the time.
+
+1. **Second screen for the gate evaluation (decided after the development screen results).** The development grid showed the pre-registered design (NDVI or SSIM) was *not* the best screen: best development pixel F1 was 0.227 for the design against 0.297 for the plain RGB-difference baseline and 0.260 for SSIM alone (NDVI alone 0.094). The gate is therefore evaluated on candidates from **both** screens. The pre-registered evaluation (candidates from the design) remains the primary result; the RGB-difference screen is an added, clearly labelled secondary analysis whose choice was informed by development results. The test split had not been touched when this was decided.
