@@ -1,6 +1,6 @@
 # geo-eval-gate — satellite change detection where an AI may label a change but cannot approve one
 
-**Status: v0.2, portfolio project.** The deterministic screen, the evaluator gate, a real-data loader and scoring, and a local vision-model runner are built and tested, and the design has now been evaluated on **real Sentinel-2 imagery with human labels** (OSCD, 24 city pairs) under a protocol fixed in advance. The result is mixed and reported in full in [Results](#results): the gate reliably raises precision with one model, a second model added nothing, the models' self-reported confidence is not usable, and the screen is the main limit.
+**Status: v0.2, portfolio project.** The deterministic screen, the evaluator gate, a real-data loader and scoring, and a local vision-model runner are built and tested, and the design has now been evaluated on **real Sentinel-2 imagery with human labels** (OSCD, 24 city pairs) under a protocol fixed in advance. The result is mixed and reported in full in [Results](#results): the gate reliably raises precision with one model, a second model added nothing, the models' self-reported confidence is not usable, and the screen is the main limit. A calibrated text-only judge (TypeSafe Jev) was then tested as a fix for the confidence problem and turned out to be a calibration layer rather than a better judge.
 
 ```text
 $ python examples/demo.py
@@ -57,7 +57,7 @@ A vision-language model on every tile of a large raster is too slow and expensiv
 | Gate | strict schema, confidence floor (default 0.8), actionable classes only |
 | Measured (synthetic) | building recall 0.975 with the cloud mask, 0 false candidates per scene; about 4.5 ms per 128x128 scene |
 | Measured (real, OSCD test split) | Gemma gate precision 0.67 against 0.42 for the screen alone (design screen), keeping about 70% of real candidates; the screens find about 39% of labelled objects |
-| Tests | 41, including property-based and fake-server tests; `mypy --strict`; ruff |
+| Tests | 54, including property-based and fake-server tests and a secret-leak guard; `mypy --strict`; ruff |
 
 ## Architecture at a glance
 
@@ -118,7 +118,7 @@ uv venv && uv pip install -e ".[dev]"            # add ".[geo]" for GeoTIFF load
 
 python examples/demo.py                         # the output shown above
 python scripts/benchmark.py 100                 # synthetic screening benchmark
-pytest -q                                       # 41 passed
+pytest -q                                       # 54 passed
 ```
 
 ```python
@@ -177,6 +177,19 @@ Protocol: [docs/PROTOCOL.md](docs/PROTOCOL.md), written and pushed **before** an
 
 So the honest reading is: the screen-then-gate design does what it claims on precision when the model is good enough (Gemma) and does nothing when it is not (Qwen); the confidence floor, as built, is not a usable control; and recall is bounded by the screen, not the gate.
 
+### Calibrated-judge extension (TypeSafe Jev)
+
+The main evaluation found the vision models' self-reported confidence unusable, so I tested whether a calibrated text-only judge, [TypeSafe Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev), could sit behind the vision model and supply a trustworthy probability. Protocol written first ([docs/PROTOCOL_JEV.md](docs/PROTOCOL_JEV.md)); full results in [docs/RESULTS_JEV.md](docs/RESULTS_JEV.md). The test split had already been seen, so this is a second look, not a fresh test.
+
+| Question | Result (10 test pairs) |
+| --- | --- |
+| Is Jev's probability calibrated (error at most 0.10)? | **No**: 0.166 (design) and 0.124 (RGB). Better than Gemma's implied probability (0.232 and 0.284), but short of the bar |
+| Does it beat a stacked logistic regression on the same inputs? | **No**: slightly worse AUROC (0.701 against 0.782, and 0.684 against 0.739) |
+| Does a text-only judge on the bare statistics beat a 3-number regression? | **No**: far worse, and on the design screen its ranking is backwards (AUROC 0.218) |
+| What does it buy behind Gemma? | The same precision lift (+0.246 and +0.175) and recall as Gemma's own gate, with a usable adjustable threshold, for about $0.014 and 240 ms per 800 calls |
+
+So Jev behind a vision model works as a **calibration layer, not a better judge**, and a stacked regression fitted on labelled data was as good or better. Its possible advantage, the case with no labelled data, was not tested.
+
 ### Synthetic scenes
 
 Synthetic scenes only (`geo_eval_gate.synthetic.make_pair`: 128x128, seeds 1000-1099, two buildings, one cloud and a global seasonal vegetation decline per pair). This measures the deterministic screen, not any model. Reproduce: `python scripts/benchmark.py 100`.
@@ -198,6 +211,7 @@ On synthetic scenes the cloud mask removes all 0.61 false candidates per scene a
 - **One prompt, two models, greedy decoding, 10 m pixels.** Qwen's failure may be a prompt effect (no prompt search was done, on purpose). Gemma was run with its reasoning phase off; behaviour with reasoning on was not tested.
 - **Gate figures use a seeded sample of 400 candidates** per screen, not all of them.
 - **Sentinel-2 at 10 m is coarse for buildings.** The vision model is working at the edge of what the pixels show.
+- **The Jev extension reused a test split already seen**, used one fixed instruction, and its comparison against a stacked regression rests on 10 pairs.
 - **Not done:** SAM 2 or Prithvi segmentation, imagery download pipelines (NAIP, Planetary Computer), a calibrated judge, other sensors or cities, an end-to-end recall measurement.
 
 ## Operational notes
@@ -208,12 +222,12 @@ Everything is local and CPU-only today; the screen processes a 128x128 synthetic
 
 ### Data and keys
 
-No keys and no downloads. The benchmark data is generated from a seed. Any real imagery used later should be public or unclassified (Sentinel-2, NAIP).
+Real-data runs use the public OSCD Sentinel-2 dataset, downloaded on demand and never committed. The only key is the **optional** `TYPESAFE_AI_API_KEY`, used by the Jev experiment and nothing else: put it in a git-ignored `.env` (copy `.env.example`) or the environment. `.env` is ignored and a test fails if any tracked file ever contains a key value. Only derived numbers and model-written text about public scenes are sent to the API, never imagery.
 
 ### Verify the claims (a reviewer's path)
 
 ```bash
-pytest -q                          # 41 passed
+pytest -q                          # 54 passed
 mypy src tests scripts             # strict, clean
 python examples/demo.py            # the screen and gate decisions shown at the top
 python scripts/benchmark.py 100    # the table above
@@ -225,6 +239,8 @@ docker build -t geo-eval-gate . && docker run --rm --network none geo-eval-gate
 | Doc | What it covers |
 | --- | --- |
 | [docs/RESULTS_REAL.md](docs/RESULTS_REAL.md) | the real-data (OSCD) results, intervals, calibration, failure criteria, what went wrong |
+| [docs/RESULTS_JEV.md](docs/RESULTS_JEV.md) | the calibrated-judge (Jev) extension: results, calibration detail, criteria, limits |
+| [docs/PROTOCOL_JEV.md](docs/PROTOCOL_JEV.md) | the extension's plan, written before the first API call, and its deviations |
 | [docs/PROTOCOL.md](docs/PROTOCOL.md) | the evaluation plan written before any result was seen, and every deviation from it |
 | [docs/RESULTS.md](docs/RESULTS.md) | the synthetic benchmark, how to read it, what is not measured |
 | [results/real/](results/real/) | frozen settings, per-candidate model replies and all result JSON |

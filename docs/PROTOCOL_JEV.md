@@ -67,4 +67,5 @@ Ten test pairs; one vision model's replies; Jev is used zero-shot (only the inst
 
 ## Deviations
 
-None yet.
+1. **A fair calibration comparison added after the test results were seen.** The test stage stored an `ece_stated_confidence` for the Gemma gate that treats Gemma's confidence in its own label as a probability of real change, which is not comparable to Jev's probability of real change (0.534 and 0.611, against a fair 0.232 and 0.284). `scripts/real_jev_posthoc.py` converts Gemma's confidence to an implied probability (confidence if it called an actionable class, one minus confidence otherwise) and recomputes calibration error and Brier score. It changes no stored result; the unfair figure is left in the JSON and flagged in RESULTS_JEV.md.
+2. **A guard test false-positive during the work (not a deviation from the design).** The secret-guard test flagged a fixture string in `tests/test_jev.py`; the real key was confirmed to be absent from every tracked file and from git history, and the fixture was rebuilt from parts. The CI run on the intermediate commit was red as a result.

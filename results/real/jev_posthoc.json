@@ -1,0 +1,192 @@
+{
+ "design": {
+  "gemma_implied_ece": 0.2317499999999999,
+  "gemma_implied_brier": 0.25443750000000004,
+  "jev_armB_ece": 0.16617499999999996,
+  "jev_armB_brier": 0.22300125,
+  "stacked_ece": 0.1852512248183411,
+  "stacked_brier": 0.22644095243724466,
+  "not_comparable_ece_stated_confidence": 0.5342499999999999,
+  "reliability": [
+   {
+    "bin": [
+     0.0,
+     0.1
+    ],
+    "jev_n": 210,
+    "jev_mean_p": 0.06733333333333334,
+    "jev_actual": 0.21428571428571427,
+    "gemma_n": 221,
+    "gemma_mean_p": 0.04366515837104076,
+    "gemma_actual": 0.22624434389140272
+   },
+   {
+    "bin": [
+     0.1,
+     0.2
+    ],
+    "jev_n": 11,
+    "jev_mean_p": 0.10363636363636365,
+    "jev_actual": 0.45454545454545453,
+    "gemma_n": 0,
+    "gemma_mean_p": null,
+    "gemma_actual": null
+   },
+   {
+    "bin": [
+     0.2,
+     0.35
+    ],
+    "jev_n": 0,
+    "jev_mean_p": null,
+    "jev_actual": null,
+    "gemma_n": 0,
+    "gemma_mean_p": null,
+    "gemma_actual": null
+   },
+   {
+    "bin": [
+     0.35,
+     0.5
+    ],
+    "jev_n": 1,
+    "jev_mean_p": 0.49,
+    "jev_actual": 0.0,
+    "gemma_n": 0,
+    "gemma_mean_p": null,
+    "gemma_actual": null
+   },
+   {
+    "bin": [
+     0.5,
+     0.65
+    ],
+    "jev_n": 3,
+    "jev_mean_p": 0.6000000000000001,
+    "jev_actual": 0.3333333333333333,
+    "gemma_n": 0,
+    "gemma_mean_p": null,
+    "gemma_actual": null
+   },
+   {
+    "bin": [
+     0.65,
+     0.8
+    ],
+    "jev_n": 60,
+    "jev_mean_p": 0.7585000000000001,
+    "jev_actual": 0.8166666666666667,
+    "gemma_n": 0,
+    "gemma_mean_p": null,
+    "gemma_actual": null
+   },
+   {
+    "bin": [
+     0.8,
+     1.0
+    ],
+    "jev_n": 115,
+    "jev_mean_p": 0.8390434782608696,
+    "jev_actual": 0.6,
+    "gemma_n": 179,
+    "gemma_mean_p": 0.9572625698324021,
+    "gemma_actual": 0.664804469273743
+   }
+  ]
+ },
+ "rgb": {
+  "gemma_implied_ece": 0.283625,
+  "gemma_implied_brier": 0.30070625,
+  "jev_armB_ece": 0.12435,
+  "jev_armB_brier": 0.21988649999999998,
+  "stacked_ece": 0.07241791296202442,
+  "stacked_brier": 0.19681871901448178,
+  "not_comparable_ece_stated_confidence": 0.6111249999999998,
+  "reliability": [
+   {
+    "bin": [
+     0.0,
+     0.1
+    ],
+    "jev_n": 221,
+    "jev_mean_p": 0.0365158371040724,
+    "jev_actual": 0.20361990950226244,
+    "gemma_n": 221,
+    "gemma_mean_p": 0.04479638009049778,
+    "gemma_actual": 0.20361990950226244
+   },
+   {
+    "bin": [
+     0.1,
+     0.2
+    ],
+    "jev_n": 0,
+    "jev_mean_p": null,
+    "jev_actual": null,
+    "gemma_n": 0,
+    "gemma_mean_p": null,
+    "gemma_actual": null
+   },
+   {
+    "bin": [
+     0.2,
+     0.35
+    ],
+    "jev_n": 0,
+    "jev_mean_p": null,
+    "jev_actual": null,
+    "gemma_n": 0,
+    "gemma_mean_p": null,
+    "gemma_actual": null
+   },
+   {
+    "bin": [
+     0.35,
+     0.5
+    ],
+    "jev_n": 37,
+    "jev_mean_p": 0.45540540540540536,
+    "jev_actual": 0.43243243243243246,
+    "gemma_n": 0,
+    "gemma_mean_p": null,
+    "gemma_actual": null
+   },
+   {
+    "bin": [
+     0.5,
+     0.65
+    ],
+    "jev_n": 85,
+    "jev_mean_p": 0.5745882352941177,
+    "jev_actual": 0.5411764705882353,
+    "gemma_n": 0,
+    "gemma_mean_p": null,
+    "gemma_actual": null
+   },
+   {
+    "bin": [
+     0.65,
+     0.8
+    ],
+    "jev_n": 57,
+    "jev_mean_p": 0.6821052631578948,
+    "jev_actual": 0.543859649122807,
+    "gemma_n": 0,
+    "gemma_mean_p": null,
+    "gemma_actual": null
+   },
+   {
+    "bin": [
+     0.8,
+     1.0
+    ],
+    "jev_n": 0,
+    "jev_mean_p": null,
+    "jev_actual": null,
+    "gemma_n": 179,
+    "gemma_mean_p": 0.9572625698324022,
+    "gemma_actual": 0.5195530726256983
+   }
+  ]
+ }
+}
