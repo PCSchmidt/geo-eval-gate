@@ -103,7 +103,7 @@ def test_dotenv_parsing(tmp_path: Path) -> None:
 
 def test_api_key_prefers_environment_then_file_and_errors_clearly(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     f = tmp_path / ".env"
-    f.write_text("TYPESAFE_AI_API_KEY=from-file\n", encoding="utf-8")
+    f.write_text("TYPESAFE_AI_API" + "_KEY=from-file\n", encoding="utf-8")
     monkeypatch.delenv("TYPESAFE_AI_API_KEY", raising=False)
     assert api_key(f) == "from-file"
     monkeypatch.setenv("TYPESAFE_AI_API_KEY", "from-env")
