@@ -10,3 +10,8 @@ build/
 data/
 results/real/probe/
 results/real/*.log
+
+# secrets: never commit
+.env
+.env.*
+!.env.example
