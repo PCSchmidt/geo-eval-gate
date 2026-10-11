@@ -252,6 +252,8 @@ docker build -t geo-eval-gate . && docker run --rm --network none geo-eval-gate
 
 MIT. See [LICENSE](LICENSE).
 
+**Data.** The Onera Satellite Change Detection (OSCD) dataset (Daudt, Le Saux, Boulch and Gousseau, "Urban Change Detection for Multispectral Earth Observation Using Convolutional Neural Networks", IGARSS 2018) is downloaded on demand from its original source by `scripts/fetch_oscd.sh` and is not redistributed here. Its Sentinel-2 imagery is Copernicus data. The repository commits only numbers derived from it and text written by the models about it. The dataset does not state a licence; if you are a rights holder and want something changed, open an issue.
+
 ## Author
 
 Chris Schmidt ([PCSchmidt](https://github.com/PCSchmidt)). Part of a portfolio on evaluator-gated AI systems: probabilistic components propose, deterministic gates decide.
