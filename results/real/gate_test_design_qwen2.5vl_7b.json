@@ -1,0 +1,64 @@
+{
+ "model": "qwen2.5vl:7b",
+ "variant": "design",
+ "n_candidates_used": 400,
+ "screen_full_test_split": {
+  "pixel_precision": 0.29538058305401826,
+  "pixel_recall": 0.3811424655984209,
+  "pixel_f1": 0.3328255672570477,
+  "object_recall": 0.39221556886227543,
+  "objects": 668,
+  "candidates": 735,
+  "candidates_per_pair": 73.5,
+  "candidate_positive_rate": 0.4054421768707483
+ },
+ "screen_alone_precision": 0.4225,
+ "gate_at_frozen_floor": {
+  "floor": 0.5,
+  "accepted": 393,
+  "precision": 0.42493638676844786,
+  "recall": 0.9881656804733728,
+  "f1": 0.5943060498220641,
+  "f1_ci95": [
+   0.5404411764705882,
+   0.6401384083044983
+  ],
+  "precision_ci95": [
+   0.37214297306069455,
+   0.4720847433728145
+  ]
+ },
+ "gate_at_default_floor_0.8": {
+  "floor": 0.8,
+  "accepted": 385,
+  "precision": 0.43376623376623374,
+  "recall": 0.9881656804733728,
+  "f1": 0.6028880866425993,
+  "f1_ci95": [
+   0.549240491651206,
+   0.649238710154848
+  ],
+  "precision_ci95": [
+   0.3818088097469541,
+   0.4831190643981342
+  ]
+ },
+ "schema_valid_rate": 1.0,
+ "mean_latency_s": 3.407843233246822,
+ "vlm_auroc": 0.5748738441046133,
+ "stats_classifier_auroc": 0.6641563564640488,
+ "stats_classifier_at_same_budget": {
+  "accepted": 393,
+  "precision": 0.4300254452926209,
+  "recall": 1.0,
+  "f1": 0.601423487544484
+ },
+ "ece_confidence_of_actionable_calls": 0.40860759493670895,
+ "n_actionable_calls": 395,
+ "class_counts": {
+  "CLOUD_ARTIFACT": 1,
+  "NEW_STRUCTURE": 237,
+  "ROAD_EXPANSION": 158,
+  "SEASONAL_DEFOLIATION": 4
+ }
+}

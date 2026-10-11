@@ -16,7 +16,7 @@ dependencies = ["numpy>=1.26", "scipy>=1.12", "pydantic>=2.6"]
 geo = ["rasterio>=1.3"]
 real = ["pyarrow>=15", "pillow>=10", "matplotlib>=3.8", "scikit-learn>=1.4"]
 vlm = ["transformers>=4.40", "torch>=2.2", "pillow>=10"]
-dev = ["pytest>=8", "hypothesis>=6.100", "mypy>=1.10", "ruff>=0.5"]
+dev = ["pytest>=8", "hypothesis>=6.100", "mypy>=1.10", "ruff>=0.5", "pillow>=10"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/geo_eval_gate"]

@@ -1,6 +1,6 @@
 # geo-eval-gate — satellite change detection where an AI may label a change but cannot approve one
 
-**Status: v0.1, portfolio project.** The deterministic screen, the evaluator gate, the GeoTIFF loader and a synthetic-scene generator are built and tested. **No real vision-language model and no real imagery have been used yet**; the only numbers are from synthetic scenes ([Results](#results)).
+**Status: v0.2, portfolio project.** The deterministic screen, the evaluator gate, a real-data loader and scoring, and a local vision-model runner are built and tested, and the design has now been evaluated on **real Sentinel-2 imagery with human labels** (OSCD, 24 city pairs) under a protocol fixed in advance. The result is mixed and reported in full in [Results](#results): the gate reliably raises precision with one model, a second model added nothing, the models' self-reported confidence is not usable, and the screen is the main limit.
 
 ```text
 $ python examples/demo.py
@@ -45,7 +45,7 @@ It is a poor fit if you need pixel-accurate segmentation, near-real-time process
 
 A vision-language model on every tile of a large raster is too slow and expensive, so a cheap deterministic stage narrows the field. A model's confidence is not a probability you can trust by default, so it is not allowed to approve a change by itself: a schema, a floor and a class rule decide, in plain code.
 
-**What's real and what's not.** The screening maths, the cloud mask, the gate and the loader are real, runnable and tested. The imagery in every example and benchmark is **synthetic**, and the VLM is a scripted stand-in. Whether the screen and the gate work on real Sentinel-2 or NAIP scenes is **not yet known**.
+**What's real and what's not.** The screening maths, the gate, the loader and the scoring are real, runnable and tested. The examples at the top use synthetic scenes and a scripted stand-in for the model. Separately, the design was run on **real imagery**: 24 Sentinel-2 city pairs from OSCD, two local vision-language models (Gemma 4 12B and Qwen2.5-VL 7B), a protocol written before any result was seen, and a test split run once. Those results are narrow (10 test pairs, urban-change labels only, 10 m pixels, one prompt) and their limits are stated in [docs/RESULTS_REAL.md](docs/RESULTS_REAL.md).
 
 ## At a glance
 
@@ -53,10 +53,11 @@ A vision-language model on every tile of a large raster is too slow and expensiv
 | --- | --- |
 | Input | two co-registered GeoTIFFs (red, green, blue, near-infrared bands) |
 | Screen | NDVI delta + SSIM delta, cloud mask, morphology, minimum area, candidate boxes and crops |
-| Label | any model that returns text, behind a `VLMRunner` interface (none included) |
+| Label | any model that returns text, behind a `VLMRunner` interface; a local Ollama vision runner is included |
 | Gate | strict schema, confidence floor (default 0.8), actionable classes only |
 | Measured (synthetic) | building recall 0.975 with the cloud mask, 0 false candidates per scene; about 4.5 ms per 128x128 scene |
-| Tests | 21, including property-based; `mypy --strict`; ruff |
+| Measured (real, OSCD test split) | Gemma gate precision 0.67 against 0.42 for the screen alone (design screen), keeping about 70% of real candidates; the screens find about 39% of labelled objects |
+| Tests | 41, including property-based and fake-server tests; `mypy --strict`; ruff |
 
 ## Architecture at a glance
 
@@ -117,7 +118,7 @@ uv venv && uv pip install -e ".[dev]"            # add ".[geo]" for GeoTIFF load
 
 python examples/demo.py                         # the output shown above
 python scripts/benchmark.py 100                 # synthetic screening benchmark
-pytest -q                                       # 21 passed
+pytest -q                                       # 41 passed
 ```
 
 ```python
@@ -154,6 +155,30 @@ Remote-sensing change detection is a natural place for the pattern in my other p
 
 ## Results
 
+### Real imagery (OSCD, Sentinel-2): the main evidence
+
+Protocol: [docs/PROTOCOL.md](docs/PROTOCOL.md), written and pushed **before** any result was seen. 14 pairs for development (all tuning), 10 for the test split, run once. Labels cover urban change only (new buildings and roads), so precision is pessimistic. Full tables, intervals and caveats: [docs/RESULTS_REAL.md](docs/RESULTS_REAL.md).
+
+**The screen** (all 10 test pairs): pixel F1 0.333 for the NDVI-or-SSIM design and 0.348 for a plain RGB-difference baseline; **both find only about 39% of the 668 labelled change objects**. On development data the design (F1 0.227) was *worse* than SSIM alone (0.260) and the RGB baseline (0.297): adding NDVI added vegetation false positives. The cloud mask made no difference on this data.
+
+**The gate** (400 sampled test candidates per screen, thresholds frozen on development data):
+
+| Model | Screen | Precision (screen alone to gate) | Recall kept | Precision lift, pair-level 95% interval | Verdict |
+| --- | --- | --- | --- | --- | --- |
+| Gemma 4 12B | NDVI or SSIM | 0.42 to 0.67 | 70% | **+0.24 [+0.09, +0.33]** | helps |
+| Gemma 4 12B | RGB difference | 0.35 to 0.52 | 67% | **+0.18 [+0.05, +0.26]** | helps |
+| Qwen2.5-VL 7B | NDVI or SSIM | 0.42 to 0.43 | 99% | +0.00 [-0.01, +0.01] | adds nothing |
+| Qwen2.5-VL 7B | RGB difference | 0.35 to 0.36 | 98% | +0.01 [+0.00, +0.03] | adds nothing |
+
+**Against the failure criteria stated in advance:**
+- *Does the gate beat the screen alone on F1?* Gemma's point estimates say yes (+0.09, +0.08) but the 10-pair intervals include zero, so it is **not established**; Qwen no.
+- *Does the VLM beat a three-number statistics classifier?* Gemma's point estimates are ahead (AUROC 0.73 against 0.66 on the design screen, F1 0.68 against 0.56 at the same number accepted) but the intervals include zero, so **not established**; Qwen is worse than the statistics.
+- *Is the models' confidence calibrated (ECE at most 0.2)?* **No**: 0.29-0.47. Gemma reports only 0.90, 0.95 or 1.00, so every confidence floor up to 0.95 gives the same gate; the class label does the work and the confidence none.
+
+So the honest reading is: the screen-then-gate design does what it claims on precision when the model is good enough (Gemma) and does nothing when it is not (Qwen); the confidence floor, as built, is not a usable control; and recall is bounded by the screen, not the gate.
+
+### Synthetic scenes
+
 Synthetic scenes only (`geo_eval_gate.synthetic.make_pair`: 128x128, seeds 1000-1099, two buildings, one cloud and a global seasonal vegetation decline per pair). This measures the deterministic screen, not any model. Reproduce: `python scripts/benchmark.py 100`.
 
 | Config | Building recall | False candidates / scene | Candidates / scene | ms / scene |
@@ -161,21 +186,19 @@ Synthetic scenes only (`geo_eval_gate.synthetic.make_pair`: 128x128, seeds 1000-
 | NDVI + SSIM, cloud mask on | 0.975 | 0.00 | 1.77 | 4.5 |
 | NDVI + SSIM, cloud mask off | 1.000 | 0.61 | 2.42 | 4.2 |
 
-- The cloud mask removes all 0.61 false candidates per scene, at a cost of 2.5 points of recall: a randomly placed cloud sometimes covers a building, and masked pixels are excluded by design.
-- A seasonal decline alone produces zero candidates (tested separately).
-- With 200 buildings, one missed building is 0.5 points; differences under about 1.5 points are noise.
-- Two bugs were found and fixed while building these tests: a cloud mask halo that leaked false candidates, and a generator that applied the seasonal change after painting the cloud.
-
-Full tables and what was not measured: [docs/RESULTS.md](docs/RESULTS.md).
+On synthetic scenes the cloud mask removes all 0.61 false candidates per scene and costs 2.5 points of recall, and a seasonal decline alone produces no candidates. **These are idealised**: real scenes, where the same design reaches pixel F1 0.33, behave very differently. Full synthetic tables: [docs/RESULTS.md](docs/RESULTS.md).
 
 ## Limitations
 
-- **Synthetic scenes only.** No terrain shadow, sun-angle change, registration error, haze or real atmospheric effects.
-- **No real model.** The VLM is a scripted stand-in; taxonomy accuracy, confidence calibration and gate precision on real patches are unmeasured.
-- **The confidence floor (0.8) is a placeholder.** A model's confidence has to be calibrated (reliability curve, ECE) on labelled patches before a floor means anything.
-- **Simple cloud mask.** A brightness-and-flatness rule; thin cloud, haze and cloud shadow are not handled.
-- **Thresholds are untuned on real data.** NDVI 0.25, SSIM 0.5, minimum area and the window size are starting values.
-- **Not implemented:** Sentinel-2 / NAIP download, SAM 2 or Prithvi segmentation, a Florence-2 or Qwen2.5-VL runner.
+- **10 test pairs.** Every real-data conclusion carries wide intervals; most differences of a few points cannot be told from noise, and several of the headline comparisons are "not established" for that reason.
+- **Labels are urban change only**, and a candidate counts as real if at least 30% of it overlaps a labelled change. Unlabelled change counts against precision.
+- **The screen finds about 39% of labelled objects** (design and RGB baseline alike). The gate cannot recover what never became a candidate.
+- **The NDVI-or-SSIM design did not beat a plain RGB difference** on development data and was on par on test; the NDVI part mostly adds vegetation false positives.
+- **Confidence is not usable as a control.** Both models' self-reported confidence fails the calibration criterion, so a floor on it is not meaningful.
+- **One prompt, two models, greedy decoding, 10 m pixels.** Qwen's failure may be a prompt effect (no prompt search was done, on purpose). Gemma was run with its reasoning phase off; behaviour with reasoning on was not tested.
+- **Gate figures use a seeded sample of 400 candidates** per screen, not all of them.
+- **Sentinel-2 at 10 m is coarse for buildings.** The vision model is working at the edge of what the pixels show.
+- **Not done:** SAM 2 or Prithvi segmentation, imagery download pipelines (NAIP, Planetary Computer), a calibrated judge, other sensors or cities, an end-to-end recall measurement.
 
 ## Operational notes
 
@@ -190,7 +213,7 @@ No keys and no downloads. The benchmark data is generated from a seed. Any real 
 ### Verify the claims (a reviewer's path)
 
 ```bash
-pytest -q                          # 21 passed
+pytest -q                          # 41 passed
 mypy src tests scripts             # strict, clean
 python examples/demo.py            # the screen and gate decisions shown at the top
 python scripts/benchmark.py 100    # the table above
@@ -201,7 +224,10 @@ docker build -t geo-eval-gate . && docker run --rm --network none geo-eval-gate
 
 | Doc | What it covers |
 | --- | --- |
+| [docs/RESULTS_REAL.md](docs/RESULTS_REAL.md) | the real-data (OSCD) results, intervals, calibration, failure criteria, what went wrong |
+| [docs/PROTOCOL.md](docs/PROTOCOL.md) | the evaluation plan written before any result was seen, and every deviation from it |
 | [docs/RESULTS.md](docs/RESULTS.md) | the synthetic benchmark, how to read it, what is not measured |
+| [results/real/](results/real/) | frozen settings, per-candidate model replies and all result JSON |
 | [examples/demo.py](examples/demo.py) | the worked example above |
 | [scripts/benchmark.py](scripts/benchmark.py) | the benchmark |
 | [src/geo_eval_gate/gate.py](src/geo_eval_gate/gate.py) | the evaluator gate |

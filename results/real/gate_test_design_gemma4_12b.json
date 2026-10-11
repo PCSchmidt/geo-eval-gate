@@ -1,0 +1,65 @@
+{
+ "model": "gemma4:12b",
+ "variant": "design",
+ "n_candidates_used": 400,
+ "screen_full_test_split": {
+  "pixel_precision": 0.29538058305401826,
+  "pixel_recall": 0.3811424655984209,
+  "pixel_f1": 0.3328255672570477,
+  "object_recall": 0.39221556886227543,
+  "objects": 668,
+  "candidates": 735,
+  "candidates_per_pair": 73.5,
+  "candidate_positive_rate": 0.4054421768707483
+ },
+ "screen_alone_precision": 0.4225,
+ "gate_at_frozen_floor": {
+  "floor": 0.9,
+  "accepted": 179,
+  "precision": 0.664804469273743,
+  "recall": 0.7041420118343196,
+  "f1": 0.6839080459770115,
+  "f1_ci95": [
+   0.6243077180646242,
+   0.7420335016627663
+  ],
+  "precision_ci95": [
+   0.5953561943446336,
+   0.7344751888911578
+  ]
+ },
+ "gate_at_default_floor_0.8": {
+  "floor": 0.8,
+  "accepted": 179,
+  "precision": 0.664804469273743,
+  "recall": 0.7041420118343196,
+  "f1": 0.6839080459770115,
+  "f1_ci95": [
+   0.6243077180646242,
+   0.7420335016627663
+  ],
+  "precision_ci95": [
+   0.5953561943446336,
+   0.7344751888911578
+  ]
+ },
+ "schema_valid_rate": 1.0,
+ "mean_latency_s": 2.1243209367484086,
+ "vlm_auroc": 0.7281692666308051,
+ "stats_classifier_auroc": 0.6641563564640488,
+ "stats_classifier_at_same_budget": {
+  "accepted": 179,
+  "precision": 0.5418994413407822,
+  "recall": 0.5739644970414202,
+  "f1": 0.5574712643678162
+ },
+ "ece_confidence_of_actionable_calls": 0.29245810055865906,
+ "n_actionable_calls": 179,
+ "class_counts": {
+  "CLOUD_ARTIFACT": 19,
+  "EARTHWORKS": 7,
+  "NEW_STRUCTURE": 167,
+  "ROAD_EXPANSION": 5,
+  "SEASONAL_DEFOLIATION": 202
+ }
+}
