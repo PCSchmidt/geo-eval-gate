@@ -72,3 +72,10 @@ def test_reply_flows_through_the_gate(server: str) -> None:
     assert evaluate(OllamaVLM("fake-vlm", host=server), tile(1), tile(2), min_confidence=0.95).decision is (
         Decision.REJECT_LOW_CONFIDENCE
     )
+
+
+def test_think_flag_is_sent_only_when_set(server: str) -> None:
+    REQUESTS.clear()
+    OllamaVLM("fake-vlm", host=server).classify(tile(1), tile(2))
+    OllamaVLM("fake-vlm", host=server, think=False).classify(tile(1), tile(2))
+    assert "think" not in REQUESTS[0] and REQUESTS[1]["think"] is False

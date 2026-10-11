@@ -8,3 +8,5 @@ dist/
 build/
 .coverage
 data/
+results/real/probe/
+results/real/*.log

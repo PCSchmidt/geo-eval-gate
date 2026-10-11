@@ -53,10 +53,12 @@ class OllamaVLM:
         constrained: bool = True,
         timeout_s: float = 300.0,
         tile: int = 256,
+        think: bool | None = None,
     ) -> None:
         self.name = model
         self._model, self._host = model, host.rstrip("/")
         self._constrained, self._timeout, self._tile = constrained, timeout_s, tile
+        self._think = think  # False turns off the reasoning phase of thinking models (gemma4, qwen3, ...)
         self.latencies_s: list[float] = []
 
     def classify(self, before: npt.NDArray[np.uint8], after: npt.NDArray[np.uint8]) -> str:
@@ -80,6 +82,8 @@ class OllamaVLM:
         }
         if self._constrained:
             body["format"] = SCHEMA
+        if self._think is not None:
+            body["think"] = self._think
         req = urllib.request.Request(
             self._host + "/api/chat", data=json.dumps(body).encode(), headers={"Content-Type": "application/json"}
         )

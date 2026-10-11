@@ -8,11 +8,13 @@ detected when at least `min_overlap` of its pixels fall inside the screen's chan
 from __future__ import annotations
 
 import itertools
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import numpy as np
 import numpy.typing as npt
 from scipy import ndimage
+from scipy.stats import rankdata
 
 from .screening import ScreenResult
 
@@ -93,3 +95,25 @@ def gate_score(accepted: list[bool], positive: list[bool]) -> GateScore:
     prec = tp / n_acc if n_acc else 0.0
     rec = tp / n_pos if n_pos else 0.0
     return GateScore(len(accepted), n_acc, prec, rec, 2 * prec * rec / (prec + rec) if prec + rec else 0.0)
+
+
+def auroc(scores: FloatArray, positive: BoolArray) -> float:
+    """P(a random positive scores above a random negative); ties count half. NaN if one class is empty."""
+    n_pos, n_neg = int(positive.sum()), int((~positive).sum())
+    if n_pos == 0 or n_neg == 0:
+        return float("nan")
+    ranks = rankdata(scores)
+    return float((ranks[positive].sum() - n_pos * (n_pos + 1) / 2.0) / (n_pos * n_neg))
+
+
+def bootstrap_ci(
+    stat: Callable[[npt.NDArray[np.intp]], float], n: int, reps: int = 1000, seed: int = 0, level: float = 0.95
+) -> tuple[float, float]:
+    """Percentile bootstrap interval of `stat(indices)` over resamples of range(n) with replacement."""
+    rng = np.random.default_rng(seed)
+    vals = np.array([stat(rng.integers(0, n, n)) for _ in range(reps)], dtype=np.float64)
+    vals = vals[~np.isnan(vals)]
+    if len(vals) == 0:
+        return float("nan"), float("nan")
+    lo, hi = np.percentile(vals, [100 * (1 - level) / 2, 100 * (1 + level) / 2])
+    return float(lo), float(hi)

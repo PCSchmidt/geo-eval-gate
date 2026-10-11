@@ -7,6 +7,8 @@ from hypothesis import strategies as st
 
 from geo_eval_gate import screen_detailed
 from geo_eval_gate.scoring import (
+    auroc,
+    bootstrap_ci,
     expected_calibration_error,
     gate_score,
     label_candidates,
@@ -88,3 +90,27 @@ def test_gate_score() -> None:
     assert none.precision == 0.0 and none.recall == 0.0 and none.f1 == 0.0
     with pytest.raises(ValueError):
         gate_score([True], [True, False])
+
+
+def test_auroc_known_cases() -> None:
+    pos = np.array([False, False, True, True])
+    assert auroc(np.array([0.1, 0.2, 0.8, 0.9]), pos) == 1.0
+    assert auroc(np.array([0.9, 0.8, 0.2, 0.1]), pos) == 0.0
+    assert auroc(np.zeros(4), pos) == 0.5  # all ties
+    assert np.isnan(auroc(np.array([1.0, 2.0]), np.array([True, True])))
+
+
+@given(st.lists(st.floats(-5, 5), min_size=4, max_size=40), st.integers(0, 10_000))
+def test_auroc_is_antisymmetric(vals: list[float], seed: int) -> None:
+    s = np.array(vals)
+    pos = np.random.default_rng(seed).random(len(s)) < 0.5
+    if pos.all() or (~pos).all():
+        return
+    assert auroc(s, pos) + auroc(s, ~pos) == pytest.approx(1.0)
+
+
+def test_bootstrap_ci_brackets_the_mean_and_is_reproducible() -> None:
+    x = np.random.default_rng(0).normal(5.0, 1.0, 200)
+    lo, hi = bootstrap_ci(lambda idx: float(x[idx].mean()), len(x), reps=400, seed=1)
+    assert lo < x.mean() < hi and hi - lo < 0.6
+    assert (lo, hi) == bootstrap_ci(lambda idx: float(x[idx].mean()), len(x), reps=400, seed=1)
