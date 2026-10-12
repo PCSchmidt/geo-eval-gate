@@ -22,4 +22,4 @@ VLM taxonomy accuracy, confidence calibration (ECE), gate precision on real patc
 
 ## Verified
 
-- 21 tests pass (cloud halo bug and a synthetic-generator ordering bug were found and fixed while writing them); `mypy --strict` and `ruff` clean.
+- 21 tests passed when this page was written (the suite is now 54 tests; see the README). The cloud halo bug and a synthetic-generator ordering bug were found and fixed while writing them. `mypy --strict` and `ruff` clean.

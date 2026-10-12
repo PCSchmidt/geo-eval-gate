@@ -16,7 +16,7 @@ On real Sentinel-2 imagery with human labels, does the evaluator-gated design do
 OSCD (Onera Satellite Change Detection), the multispectral Hugging Face version `blanchon/OSCD_MSI`: 24 Sentinel-2 city pairs (2015-2018), 13 bands, pixel masks of **urban change only** (new buildings and roads), per its dataset card.
 
 - **Development:** the 14 training pairs. All tuning and all choices of thresholds happen here.
-- **Test:** the 10 test pairs, evaluated **once**, after the configuration is frozen in `results/real/frozen.json` and committed.
+- **Test:** the 10 test pairs, evaluated **once**, after the configuration is frozen in `results/real/frozen_screen.json` and `results/real/frozen_gate.json` and committed.
 - **Licence:** listed as unknown, so the data are not redistributed; they are downloaded by `scripts/fetch_oscd.sh` into a git-ignored folder. Only derived metrics are published.
 - **Label caveat:** non-urban change (crops, vegetation clearing, water) is unlabelled, so any real non-urban change the screen finds counts against precision. Measured precision is therefore pessimistic for any method.
 
@@ -80,3 +80,4 @@ Listed in the order they happened, each with what had been seen at the time.
 5. **Confidence floors are effectively meaningless for Gemma.** It reports only 0.90, 0.95 or 1.00 (88% exactly 0.95), so every floor up to 0.95 yields the same gate. The frozen floors (design 0.9, RGB 0.95) are recorded as selected, and the calibration result on the test split is the informative one.
 6. **Pair-level bootstrap added after the test results were seen.** The test stage reported candidate-level intervals only. Because candidates within a scene pair are correlated, `scripts/real_posthoc.py` was added afterwards to bootstrap over the 10 test pairs (2,000 resamples) for the gate F1, the F1 and precision differences from the screen alone, and the AUROC difference from the statistics classifier. It changes no result. These intervals are wider and are the ones used for conclusions.
 
+7. **File-name correction (documentation only, 2026-10-12).** This protocol originally said the frozen configuration would be committed as `results/real/frozen.json`. It was stored as two files, `frozen_screen.json` and `frozen_gate.json`, and the pointer in the Test paragraph above was corrected to match. No method or result changed.

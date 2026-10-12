@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "geo-eval-gate"
-version = "0.1.0"
+version = "0.2.0"
 description = "Evaluator-gated geospatial change detection: deterministic NDVI/SSIM screening, VLM taxonomy verification behind a schema and confidence gate."
 readme = "README.md"
 requires-python = ">=3.11"
