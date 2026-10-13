@@ -216,6 +216,14 @@ On synthetic scenes the cloud mask removes all 0.61 false candidates per scene a
 - **The Jev extension reused a test split already seen**, used one fixed instruction, and its comparison against a stacked regression rests on 10 pairs.
 - **Not done:** SAM 2 or Prithvi segmentation, imagery download pipelines (NAIP, Planetary Computer), a calibrated judge, other sensors or cities, an end-to-end recall measurement.
 
+## Known gaps against the original roadmap
+
+The project began as an item in a longer roadmap that named a larger stack and scope. These parts of that plan were **not built**; the results above say nothing about them.
+
+- SAM 2 or Prithvi segmentation: candidate regions come from NDVI/SSIM and RGB-difference thresholds only.
+- Florence-2 as the patch verifier: the gate was run with Gemma 4 12B and Qwen2.5-VL 7B.
+- Imagery download clients for Sentinel Hub, the Copernicus API, NAIP or Planetary Computer: the real-data work uses the OSCD dataset, fetched by a script.
+
 ## Operational notes
 
 ### What runs where
