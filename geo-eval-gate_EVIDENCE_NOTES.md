@@ -11,9 +11,9 @@ Companion to `geo-eval-gate.md`. Labels: Confirmed, Ran it, Per the docs, My rea
 | Language, size | Python >=3.11; src 11 modules about 880 lines; tests 6 files about 570 lines; 9 scripts about 1,100 lines | Confirmed |
 | Tests | 54 passed (scratch copy initialised as a git repo); 51 passed + 3 skipped without git (secret-guard tests need a checkout) | Ran it |
 | Type check, style | `mypy src tests` clean (17 files); `mypy src tests scripts` clean (24 files, needs the `real` extra); `ruff check src tests` clean | Ran it |
-| Commits | 17, 2026-10-09 to 2026-10-19 (code work 10-09 to 10-13; the last commit adds an earlier explainer document, not read) | Confirmed |
-| Co-author credits | Claude Sonnet 5.5 on 16, Claude Opus 5.5 on 1; all 17 carry a credit; all authored as Chris Schmidt | Confirmed |
-| Agent instruction files | None in the repository (no CLAUDE.md, AGENTS.md, .claude, .cursor) | Confirmed |
+| Commits | 18 at the 2026-11-05 pull, 2026-10-09 to 2026-10-27 (code work 10-09 to 10-13; the last two commits add and then replace an explainer document, not read) | Confirmed |
+| Co-author credits | Two AI assistant models credited (17 commits and 1); all 18 carry a credit; all authored as Chris Schmidt. The guide says only 'AI coding agents' | Confirmed |
+| Agent instruction files | None in the repository (no agent instruction files or agent configuration folders) | Confirmed |
 | Deployed? | No. Dockerfile only runs pytest | Confirmed |
 | Users | None shown | Confirmed |
 | Needs | Local GPU and Ollama for real runs; about 20 MB per OSCD pair downloaded; optional paid API key for Jev (about $0.06 total per docs) | Per the docs |
@@ -80,7 +80,7 @@ Vendor and family attributions in the Explainer (Google for Gemma, Alibaba for Q
 
 ## E8 Plan-versus-results and history
 
-Commit times (author time, -0400): scaffold 10-09 16:53; README 10-10 07:52; protocol 10-10 10:28; dev stage 10-10 11:34; freeze 10-11 07:34; test results 10-11 08:56; Jev protocol 10-11 11:30; Jev client and tests 11:39; Jev freeze 12:26; Jev results 12:37; later doc fixes 10-11 to 10-13. Push times not checked (event feed limit). Deviations are listed in docs with what had been seen: RGB screen added after dev results; Gemma thinking off; runner robustness; no Qwen prompt change; floors meaningless; pair-level bootstrap added after test results; Jev: fair calibration comparison added after test results. Credits: 16 Sonnet 5.5, 1 Opus 5.5. Several commits are large result-file drops (results JSONL), so step-by-step history is partly unrecoverable. My reading.
+Commit times (author time, -0400): scaffold 10-09 16:53; README 10-10 07:52; protocol 10-10 10:28; dev stage 10-10 11:34; freeze 10-11 07:34; test results 10-11 08:56; Jev protocol 10-11 11:30; Jev client and tests 11:39; Jev freeze 12:26; Jev results 12:37; later doc fixes 10-11 to 10-13. Push times not checked (event feed limit). Deviations are listed in docs with what had been seen: RGB screen added after dev results; Gemma thinking off; runner robustness; no Qwen prompt change; floors meaningless; pair-level bootstrap added after test results; Jev: fair calibration comparison added after test results. Credits: two AI assistant models (see E1). Several commits are large result-file drops (results JSONL), so step-by-step history is partly unrecoverable. My reading.
 
 ## E9 Gates and approvals
 
@@ -128,7 +128,7 @@ Self-review pass applied to the draft: removed an unsupported claim about agent 
 
 ## E17 Completeness and backlog
 
-Promised versus built: screen (done, tested); gate (done, tested); loader (done, untested by test data; needs rasterio); OSCD loader and scoring (done; scripts untested); Ollama runner (done, fake-server tests); Jev client (done, fake-server tests); synthetic benchmark (done); real study (done, results committed); Jev extension (done). Planned only: segmentation models, Florence-2 patch verifier, imagery download clients, other sensors, end-to-end recall. Backlog. Finish: README and pyproject fixes. Fix: strict reply typing, NaN guard. Improve: CI quality check, pin versions, record model digests, prompt study, widen grids. Add: decision log, stronger screen, more imagery, service wrapper. Order: (1) docs and CI fixes (small); (2) stronger screen and more imagery (large); (3) deployment steps. Judgement: polish and freeze, optionally extend with the stronger screen.
+Promised versus built: screen (done, tested); gate (done, tested); loader (done, untested by test data; needs rasterio); OSCD loader and scoring (done; scripts untested); Ollama runner (done, fake-server tests); Jev client (done, fake-server tests); synthetic benchmark (done); real study (done, results committed); Jev extension (done). Planned only: segmentation models, Florence-2 patch verifier, imagery download clients, other sensors, end-to-end recall. Backlog. Finish: README and pyproject fixes. Fix: strict reply typing, NaN guard. Improve: CI quality check, pin versions, record model digests, prompt study, widen grids. Add: decision log, stronger screen, more imagery, service wrapper. Order: (1) docs and CI fixes (small); (2) stronger screen and more imagery (large); (3) deployment steps. Earlier judgement (polish and freeze) was withdrawn from the guide after the author's answers; no recommendation is made for him there.
 
 Image diagram sources: matplotlib script (boxes and bars) kept outside the repository; chart numbers come from RESULTS_REAL (precision, recall kept) and RESULTS_JEV (calibration bins; Gemma implied probability bin 0.80 to 1.00: 0.96 stated, 0.66 actual design, 0.52 RGB; Jev arm B top bin design 0.84 stated, 0.60 actual).
 
@@ -154,3 +154,28 @@ The previous text is kept as `geo-eval-gate.v1draft.md`. All ten fixes in `geo-e
 Image regenerated with a script kept outside the repo: `geo-eval-gate-learned-vs-rules.png` (seed and 95% range wording made plain; boxes enlarged so no text is clipped; viewed after rendering). The parts, gate-results and calibration images are unchanged because their numbers and labels did not change (0.42/0.67/0.43, 0.35/0.52/0.36; 70, 67, 99, 98; 0.96/0.66, 0.96/0.52, 0.84/0.60).
 
 Not re-verified: no study was re-run; numbers carried over from v1 and the committed result files. Removed from the text: the Jev unit price (a claim not checked against an invoice anyway) and the 400-box detail "out of about 740 and 1,040".
+
+
+## Author answers folded in, 2026-11-05
+
+Source: answers appended to the 19 questions in geo-eval-gate.questions.md. Label: Author says. Clone pulled to HEAD 48f915f (18 commits). Guide edited; no repository change.
+
+- Q1: Built because it fits his portfolio and interests; satellite change detection chosen for that reason. Stated in the problem chapter.
+- Q2: Does not recall where the original roadmap item file is; maybe the top level of the directory the repos sit in. Check (read-only) of that top level: `ai_engineering_project_roadmap_execution_template.md` (dated 9 Oct 2026, 15:57, before the first commit) has section "1. Evaluator-Gated Geospatial Change Detection" matching the README's description (NDVI + SSIM screen, VLM gate, labels EARTHWORKS / NEW_STRUCTURE / ROAD_EXPANSION / SEASONAL_DEFOLIATION / CLOUD_ARTIFACT, SAM 2 or Prithvi, Qwen2.5-VL-7B or Florence-2, Sentinel-2 or NAIP). Likely the source; the author has not confirmed it. Guide says only that he does not recall where the file is; no path quoted.
+- Q3: Probably nobody besides him is meant to use it, nobody has tried it ("probably not"). Stated as his answer.
+- Q4: Defense-interest sentence kept as is.
+- Q5: The two commit credits are "the full picture, I think". Guide says 'AI coding agents' and 'two AI assistant models'; no model named as build tool.
+- Q6: Gemma 4 12B and Qwen2.5-VL 7B chosen because inexpensive and locally hosted, "I think". Stated with that hedge next to the protocol's reason.
+- Q7: Drawn to Jev by a novel idea he wanted to test and learn more about. Whether he paid from his own account: not answered; guide says so.
+- Q8: He thinks the makers are Google (Gemma) and Alibaba (Qwen). Not confirmed from official sources: web search returned only third-party pages (Roboflow, aggregators), consistent with Google DeepMind and Alibaba's Qwen team, and no official model card was reached. Stays 'My reading' (E6).
+- Q9 finding: The protocol and results documents use first-person statements. PROTOCOL_JEV.md line 19 ("so I know the vision models' test behaviour"), line 56 section "My expectation, written down so it can be wrong", line 58 ("I expect Jev to be well calibrated..."), and RESULTS_JEV.md lines 45 and 68 ("I expected C1 met", "I did not exploit that") read as his own. By his answer the agents drafted them and he approved or edited them. The repository's first-person wording therefore differs from how they were written; no blame. Guide rewritten where it implied he wrote or decided (including "I directed", "the design I planned", "the bar I had set") and states the finding in the study-design section.
+- Q10: Real imagery, failure criteria, plain RGB screen, Jev extension were agent suggestions he approved or adapted. Guide credits no decision to him alone.
+- Q11: Overrode or caught an agent "sometimes"; no case remembered. Stated.
+- Q12: Does not recall whether he ran the real-data study himself or how long runs took. Stated as not recalled; the repository does not record who ran it.
+- Q13: Needs to refresh his memory of NDVI, SSIM, calibration and the bootstrap. Stated.
+- Q14: Does not recall what surprised him. Stated.
+- Q15: Unsure what was hardest. Stated.
+- Q16: Probably still needs some work and improvements. The guide's 'polish and freeze' suggestion removed; his answer stated.
+- Q17: Time is not an issue; goal is the best project it can be; backlog choices not made. Stated.
+- Q18: Wants the stale README lines (no real VLM runner, calibrated judge not done) corrected in the repository; README lines 33 and 217 still stale at 48f915f. Stated as his wish; repository not changed.
+- Q19: The earlier explainer was to be replaced or updated by this one. Repository check: `geo-eval-gate_MASTER_EXPLAINER.md` was added in 71455a0 (2026-10-19) and replaced in 48f915f (2026-10-27, "Replace master explainer with plain-language narrative version", with evidence notes and four images). Stated plainly in the guide.
